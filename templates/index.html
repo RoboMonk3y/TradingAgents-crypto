@@ -543,6 +543,7 @@
                                 <option value="openai">OpenAI</option>
                                 <option value="anthropic">Anthropic</option>
                                 <option value="google">Google</option>
+                                <option value="groq">Groq</option>
                             </select>
                             <input type="text" class="form-control" id="backend_url" name="backend_url" 
                                    placeholder="Backend URL" value="https://api.openai.com/v1" style="margin-top: 12px;">
@@ -752,7 +753,8 @@
             const urls = {
                 'openai': 'https://api.openai.com/v1',
                 'anthropic': 'https://api.anthropic.com/',
-                'google': 'https://generativelanguage.googleapis.com/v1'
+                'google': 'https://generativelanguage.googleapis.com/v1',
+                'groq': 'https://api.groq.com/openai/v1'
             };
             urlInput.value = urls[provider] || '';
             
@@ -801,6 +803,14 @@
                         {value: 'gemini-2.0-flash', text: 'Gemini 2.0 Flash - Next generation features, speed, and thinking'},
                         {value: 'gemini-2.5-flash-preview-05-20', text: 'Gemini 2.5 Flash - Adaptive thinking, cost efficiency'},
                         {value: 'gemini-2.5-pro-preview-06-05', text: 'Gemini 2.5 Pro'}
+                    ]
+                },
+                'groq': {
+                    shallow: [
+                        {value: 'qwen/qwen3-32b', text: 'Qwen3 32B'}
+                    ],
+                    deep: [
+                        {value: 'qwen/qwen3-32b', text: 'Qwen3 32B'}
                     ]
                 }
             };

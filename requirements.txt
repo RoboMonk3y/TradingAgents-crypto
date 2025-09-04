@@ -24,7 +24,9 @@ rich
 questionary
 langchain_anthropic
 langchain-google-genai
+langchain-groq
+python-binance
 Flask==2.3.3
 Flask-SocketIO==5.3.6
 python-socketio==5.8.0
-python-engineio==4.7.1 
+python-engineio==4.7.1

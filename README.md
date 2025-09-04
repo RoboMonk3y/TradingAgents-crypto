@@ -31,7 +31,7 @@ A powerful cryptocurrency trading analysis framework powered by multiple special
 - **DeFi Analytics**: Decentralized finance protocol analysis and yield farming insights
 
 ### 🧠 **LLM Integration**
-- **Multiple Providers**: Support for OpenAI, Anthropic, and Google models
+- **Multiple Providers**: Support for OpenAI, Anthropic, Google, and Groq models
 - **Latest Models**: Including GPT-4, Claude Sonnet/Opus, and Gemini 2.0/2.5
 - **Quick & Deep Thinking**: Separate models for fast responses and complex analysis
 - **API Key Management**: Secure API key input and management
@@ -57,6 +57,7 @@ This fork adds comprehensive cryptocurrency trading capabilities to the original
 - **24/7 Trading**: Crypto markets never close - agents adapted for continuous operation
 - **Volatility Management**: Enhanced risk assessment for crypto's high volatility
 - **Multi-Exchange Support**: Analysis across different crypto exchanges
+- **Binance Trading**: Execute orders via Binance with paper or live modes
 - **Stablecoin Integration**: USDT, USDC, DAI analysis for portfolio stability
 - **Regulatory Monitoring**: Crypto regulation tracking and impact analysis
 
@@ -112,8 +113,8 @@ This fork adds comprehensive cryptocurrency trading capabilities to the original
 
 4. **Set up environment variables**
    ```bash
-   export FINNHUB_API_KEY=your_finnhub_api_key
-   # Note: LLM API keys are entered via the web interface
+   cp .env.example .env
+   # edit .env with your API keys and configuration
    ```
 
 5. **Run the web application**
@@ -165,6 +166,10 @@ This fork adds comprehensive cryptocurrency trading capabilities to the original
 - Gemini 2.5 Pro
 - API endpoint: `https://generativelanguage.googleapis.com/v1`
 
+#### **Groq**
+- Qwen/Qwen3-32B
+- API endpoint: `https://api.groq.com/openai/v1`
+
 ## 🏗️ Architecture
 
 ### Agent Workflow
@@ -199,8 +204,23 @@ Analyst Team → Research Team → Trader → Risk Management → Portfolio Mana
 ## 🔧 Configuration
 
 ### Environment Variables
+
+Environment variables can be stored in a `.env` file. Copy the provided example and update the values:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` to include the required keys:
+
 ```bash
 FINNHUB_API_KEY=your_finnhub_key      # Required for financial data
+SECRET_KEY=change_me                  # Flask session key (use a strong value in production)
+ENVIRONMENT=development               # Use 'production' when deploying
+PORT=8080                             # Port for the web app
+BINANCE_API_KEY=your_binance_key      # Binance trading key
+BINANCE_API_SECRET=your_binance_secret# Binance trading secret
+TRADING_MODE=paper                    # 'paper' or 'live'
 ```
 
 ### LLM Configuration

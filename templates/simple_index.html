@@ -183,8 +183,9 @@
                         <select class="form-select" id="llm_provider" name="llm_provider">
                             <option value="openai">OpenAI</option>
                             <option value="anthropic">Anthropic</option>
+                            <option value="groq">Groq</option>
                         </select>
-                        <input type="text" class="form-control mt-2" id="backend_url" name="backend_url" 
+                        <input type="text" class="form-control mt-2" id="backend_url" name="backend_url"
                                value="https://api.openai.com/v1">
                     </div>
                     
@@ -218,6 +219,49 @@
     <script>
         // Set default date
         document.getElementById('analysis_date').value = new Date().toISOString().split('T')[0];
+
+        const providerSettings = {
+            openai: {
+                url: 'https://api.openai.com/v1',
+                shallow: [{value: 'gpt-4o-mini', text: 'GPT-4o-mini'}],
+                deep: [{value: 'gpt-4o', text: 'GPT-4o'}]
+            },
+            anthropic: {
+                url: 'https://api.anthropic.com/',
+                shallow: [{value: 'claude-3-5-haiku-latest', text: 'Claude Haiku 3.5'}],
+                deep: [{value: 'claude-3-5-sonnet-latest', text: 'Claude Sonnet 3.5'}]
+            },
+            groq: {
+                url: 'https://api.groq.com/openai/v1',
+                shallow: [{value: 'qwen/qwen3-32b', text: 'Qwen3 32B'}],
+                deep: [{value: 'qwen/qwen3-32b', text: 'Qwen3 32B'}]
+            }
+        };
+
+        const providerSelect = document.getElementById('llm_provider');
+        const backendInput = document.getElementById('backend_url');
+        const shallowSelect = document.getElementById('shallow_thinker');
+        const deepSelect = document.getElementById('deep_thinker');
+
+        function updateOptions(select, options) {
+            select.innerHTML = '';
+            options.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt.value;
+                o.textContent = opt.text;
+                select.appendChild(o);
+            });
+        }
+
+        function updateProvider() {
+            const settings = providerSettings[providerSelect.value];
+            backendInput.value = settings.url;
+            updateOptions(shallowSelect, settings.shallow);
+            updateOptions(deepSelect, settings.deep);
+        }
+
+        providerSelect.addEventListener('change', updateProvider);
+        updateProvider();
         
         // Handle analyst selection
         document.querySelectorAll('.checkbox-item').forEach(item => {

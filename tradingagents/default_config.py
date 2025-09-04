@@ -19,4 +19,9 @@ DEFAULT_CONFIG = {
     "max_recur_limit": 100,
     # Tool settings
     "online_tools": True,
+    # Trading settings
+    "trading_mode": os.getenv("TRADING_MODE", "paper"),
+    "binance_api_key": os.getenv("BINANCE_API_KEY", ""),
+    "binance_api_secret": os.getenv("BINANCE_API_SECRET", ""),
+    "trade_quantity": float(os.getenv("TRADE_QUANTITY", "0.001")),
 }

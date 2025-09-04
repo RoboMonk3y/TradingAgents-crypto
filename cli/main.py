@@ -480,6 +480,14 @@ def get_user_selections():
     selected_shallow_thinker = select_shallow_thinking_agent(selected_llm_provider)
     selected_deep_thinker = select_deep_thinking_agent(selected_llm_provider)
 
+    # Step 7: Trading mode
+    console.print(
+        create_question_box(
+            "Step 7: Trading Mode", "Choose between paper or live trading"
+        )
+    )
+    trading_mode = select_trading_mode()
+
     return {
         "ticker": selected_ticker,
         "analysis_date": analysis_date,
@@ -489,6 +497,7 @@ def get_user_selections():
         "backend_url": backend_url,
         "shallow_thinker": selected_shallow_thinker,
         "deep_thinker": selected_deep_thinker,
+        "trading_mode": trading_mode,
     }
 
 
@@ -743,6 +752,7 @@ def run_analysis():
     config["deep_think_llm"] = selections["deep_thinker"]
     config["backend_url"] = selections["backend_url"]
     config["llm_provider"] = selections["llm_provider"].lower()
+    config["trading_mode"] = selections["trading_mode"]
 
     # Initialize the graph
     graph = TradingAgentsGraph(

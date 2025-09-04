@@ -1,11 +1,22 @@
 import functools
-import time
 import json
+import re
+
+from .binance_client import BinanceTrader
 
 
-def create_trader(llm, memory):
+def create_trader(llm, memory, config):
+    binance = None
+    api_key = config.get("binance_api_key")
+    api_secret = config.get("binance_api_secret")
+    if api_key and api_secret:
+        binance = BinanceTrader(api_key, api_secret, config.get("trading_mode", "paper"))
+
     def trader_node(state, name):
         company_name = state["company_of_interest"]
+        symbol = company_name.upper()
+        if not symbol.endswith("USDT"):
+            symbol = symbol + "USDT"
         investment_plan = state["investment_plan"]
         market_research_report = state["market_report"]
         sentiment_report = state["sentiment_report"]
@@ -37,9 +48,24 @@ def create_trader(llm, memory):
 
         result = llm.invoke(messages)
 
+        decision = "HOLD"
+        match = re.search(r"FINAL TRANSACTION PROPOSAL:\s*\*\*(BUY|SELL|HOLD)\*\*", result.content.upper())
+        if match:
+            decision = match.group(1)
+
+        trade_result = None
+        if binance and decision in {"BUY", "SELL"}:
+            quantity = float(config.get("trade_quantity", 0.001))
+            try:
+                trade_result = binance.execute_trade(symbol, decision, quantity)
+            except Exception as e:
+                trade_result = {"error": str(e)}
+
         return {
             "messages": [result],
             "trader_investment_plan": result.content,
+            "trade_decision": decision,
+            "trade_result": trade_result,
             "sender": name,
         }
 

@@ -9,6 +9,7 @@ langchain-openai
 langchain-experimental
 langchain_anthropic
 langchain-google-genai
+langchain-groq
 langgraph
 
 # Data Analysis and Finance
@@ -30,8 +31,10 @@ finnhub-python
 
 # Crypto-specific data sources
 eodhd
+python-binance
 
 # Additional utilities
 typing-extensions
 setuptools
-rich 
+rich
+
