@@ -60,8 +60,14 @@ def create_market_analyst(llm, toolkit):
         is_crypto = _is_crypto_symbol(ticker)
         
         if is_crypto:
-            # Use crypto-specific tools
-            tools = [toolkit.get_crypto_price_history, toolkit.get_crypto_technical_analysis]
+            # Use crypto-specific tools (include news and market overview)
+            tools = [
+                toolkit.get_crypto_price_history,
+                toolkit.get_crypto_technical_analysis,
+                toolkit.get_crypto_market_analysis,
+                toolkit.get_crypto_news_analysis,
+                toolkit.get_reddit_stock_info,
+            ]
             
             system_message = (
                 """You are a cryptocurrency technical analyst tasked with analyzing crypto markets. Your role is to provide comprehensive technical analysis for cryptocurrency trading. Focus on crypto-specific patterns and indicators that are most relevant for digital assets.
@@ -135,6 +141,24 @@ Volume-Based Indicators:
                 MessagesPlaceholder(variable_name="messages"),
             ]
         )
+
+        prompt = prompt.partial(system_message=system_message)
+        prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
+        prompt = prompt.partial(current_date=current_date)
+        prompt = prompt.partial(ticker=ticker)
+
+        # Strong instruction to avoid unbound tools and enforce param names
+        prompt = ChatPromptTemplate.from_messages([
+            (
+                "system",
+                "You are a helpful AI assistant, collaborating with other assistants."
+                " Use ONLY the tools explicitly listed: {tool_names}. Do NOT call any other tool names."
+                " Use the exact parameter names defined by each tool (e.g., 'symbol' or 'ticker', 'curr_date' or 'date')."
+                " If information is unavailable via these tools, proceed with what you have and do not invent tool calls.\n"
+                "{system_message} For your reference, the current date is {current_date}. The company we want to look at is {ticker}"
+            ),
+            MessagesPlaceholder(variable_name="messages"),
+        ])
 
         prompt = prompt.partial(system_message=system_message)
         prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))

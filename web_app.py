@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 import os
 import re
+from dotenv import load_dotenv
 
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
@@ -47,6 +48,9 @@ def safe_error_traceback(traceback_str: str) -> str:
 def is_production() -> bool:
     """Check if running in production environment"""
     return os.environ.get('ENVIRONMENT', '').lower() == 'production'
+
+# Load .env for local/dev runs (no-op if not present)
+load_dotenv()
 
 app = Flask(__name__)
 # Use environment variable for SECRET_KEY in production, fallback for development
@@ -192,8 +196,9 @@ def run_analysis_background(session_id: str, config: Dict):
             'llm_provider': config['llm_provider'],
             'backend_url': config['backend_url'],
             'api_key': config.get('api_key', ''),
-            'shallow_thinker': config['shallow_thinker'],
-            'deep_thinker': config['deep_thinker'],
+            # Map UI selections to model keys actually used
+            'quick_think_llm': config['shallow_thinker'],
+            'deep_think_llm': config['deep_thinker'],
             'research_depth': config['research_depth'],
             'session_id': session_id  # Add session ID for unique memory collections
         })
