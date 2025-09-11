@@ -7,7 +7,8 @@ from typing import Dict, List, Optional
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'tradingagents_secret_key'
+# Use environment variable for SECRET_KEY with a sensible default
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'tradingagents_secret_key')
 
 # Global storage for analysis sessions (simplified for serverless)
 analysis_sessions = {}

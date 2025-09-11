@@ -33,11 +33,14 @@ class FinancialSituationMemory:
 
     def get_embedding(self, text):
         """Get OpenAI embedding for a text"""
-        
-        response = self.client.embeddings.create(
-            model=self.embedding, input=text
-        )
-        return response.data[0].embedding
+        try:
+            response = self.client.embeddings.create(
+                model=self.embedding, input=text
+            )
+            return response.data[0].embedding
+        except Exception:
+            # Embeddings may not be available on some providers (e.g., Groq)
+            return None
 
     def add_situations(self, situations_and_advice):
         """Add financial situations and their corresponding advice. Parameter is a list of tuples (situation, rec)"""
@@ -65,6 +68,9 @@ class FinancialSituationMemory:
     def get_memories(self, current_situation, n_matches=1):
         """Find matching recommendations using OpenAI embeddings"""
         query_embedding = self.get_embedding(current_situation)
+        if query_embedding is None:
+            # Fallback: no memory retrieval
+            return []
 
         results = self.situation_collection.query(
             query_embeddings=[query_embedding],

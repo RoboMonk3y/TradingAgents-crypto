@@ -7,7 +7,8 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'tradingagents_secret_key'
+# Use environment variable for SECRET_KEY with a sensible default
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'tradingagents_secret_key')
 app.config['DEBUG'] = False
 
 @app.route('/')

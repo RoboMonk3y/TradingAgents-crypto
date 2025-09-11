@@ -7,6 +7,7 @@ from langgraph.prebuilt import ToolNode
 
 from tradingagents.agents import *
 from tradingagents.agents.utils.agent_states import AgentState
+from tradingagents.agents.trader.executor import create_trade_executor
 from tradingagents.agents.utils.agent_utils import Toolkit
 
 from .conditional_logic import ConditionalLogic
@@ -27,6 +28,7 @@ class GraphSetup:
         invest_judge_memory,
         risk_manager_memory,
         conditional_logic: ConditionalLogic,
+        config: Dict[str, Any],
     ):
         """Initialize with required components."""
         self.quick_thinking_llm = quick_thinking_llm
@@ -39,6 +41,7 @@ class GraphSetup:
         self.invest_judge_memory = invest_judge_memory
         self.risk_manager_memory = risk_manager_memory
         self.conditional_logic = conditional_logic
+        self.config = config
 
     def setup_graph(
         self, selected_analysts=["market", "social", "news", "fundamentals"]
@@ -107,6 +110,7 @@ class GraphSetup:
         risk_manager_node = create_risk_manager(
             self.deep_thinking_llm, self.risk_manager_memory
         )
+        trade_executor_node = create_trade_executor(self.config)
 
         # Create workflow
         workflow = StateGraph(AgentState)
@@ -199,7 +203,9 @@ class GraphSetup:
             },
         )
 
-        workflow.add_edge("Risk Judge", END)
+        workflow.add_edge("Risk Judge", "Trade Executor")
+        workflow.add_node("Trade Executor", trade_executor_node)
+        workflow.add_edge("Trade Executor", END)
 
         # Compile and return
         return workflow.compile()

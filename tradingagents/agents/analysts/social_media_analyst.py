@@ -9,11 +9,13 @@ def create_social_media_analyst(llm, toolkit):
         ticker = state["company_of_interest"]
         company_name = state["company_of_interest"]
 
-        if toolkit.config["online_tools"]:
+        provider = str(toolkit.config.get("llm_provider", "")).lower()
+        if provider == "openai" and toolkit.config.get("online_tools", True):
             tools = [toolkit.get_stock_news_openai]
         else:
             tools = [
                 toolkit.get_reddit_stock_info,
+                toolkit.get_crypto_news_analysis,
             ]
 
         system_message = (
@@ -21,22 +23,17 @@ def create_social_media_analyst(llm, toolkit):
             + """ Make sure to append a Makrdown table at the end of the report to organize key points in the report, organized and easy to read.""",
         )
 
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    "You are a helpful AI assistant, collaborating with other assistants."
-                    " Use the provided tools to progress towards answering the question."
-                    " If you are unable to fully answer, that's OK; another assistant with different tools"
-                    " will help where you left off. Execute what you can to make progress."
-                    " If you or any other assistant has the FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL** or deliverable,"
-                    " prefix your response with FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL** so the team knows to stop."
-                    " You have access to the following tools: {tool_names}.\n{system_message}"
-                    "For your reference, the current date is {current_date}. The current company we want to analyze is {ticker}",
-                ),
-                MessagesPlaceholder(variable_name="messages"),
-            ]
-        )
+        prompt = ChatPromptTemplate.from_messages([
+            (
+                "system",
+                "You are a helpful AI assistant, collaborating with other assistants."
+                " Use ONLY the tools explicitly listed: {tool_names}. Do NOT call any other tool names."
+                " Use the exact parameter names defined by each tool (e.g., 'ticker' and 'curr_date', or 'symbol' and 'curr_date')."
+                " If information is unavailable via these tools, proceed with what you have and do not invent tool calls.\n"
+                "{system_message} For your reference, the current date is {current_date}. The current company we want to analyze is {ticker}"
+            ),
+            MessagesPlaceholder(variable_name="messages"),
+        ])
 
         prompt = prompt.partial(system_message=system_message)
         prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))

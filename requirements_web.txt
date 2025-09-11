@@ -38,3 +38,5 @@ typing-extensions
 setuptools
 rich
 
+# Load .env in development
+python-dotenv

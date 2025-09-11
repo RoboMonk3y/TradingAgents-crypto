@@ -184,6 +184,7 @@
                             <option value="openai">OpenAI</option>
                             <option value="anthropic">Anthropic</option>
                             <option value="groq">Groq</option>
+                            <option value="openrouter">OpenRouter</option>
                         </select>
                         <input type="text" class="form-control mt-2" id="backend_url" name="backend_url"
                                value="https://api.openai.com/v1">
@@ -235,6 +236,17 @@
                 url: 'https://api.groq.com/openai/v1',
                 shallow: [{value: 'qwen/qwen3-32b', text: 'Qwen3 32B'}],
                 deep: [{value: 'qwen/qwen3-32b', text: 'Qwen3 32B'}]
+            },
+            openrouter: {
+                url: 'https://openrouter.ai/api/v1',
+                shallow: [
+                    {value: 'openai/gpt-4o-mini', text: 'OpenAI GPT-4o-mini'},
+                    {value: 'meta-llama/llama-3.1-8b-instruct', text: 'Llama 3.1 8B Instruct'}
+                ],
+                deep: [
+                    {value: 'openai/gpt-4o', text: 'OpenAI GPT-4o'},
+                    {value: 'anthropic/claude-3.7-sonnet', text: 'Claude 3.7 Sonnet'}
+                ]
             }
         };
 

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 import os
 import re
+from dotenv import load_dotenv
 
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
@@ -48,6 +49,9 @@ def is_production() -> bool:
     """Check if running in production environment"""
     return os.environ.get('ENVIRONMENT', '').lower() == 'production'
 
+# Load .env for local/dev runs (no-op if not present)
+load_dotenv()
+
 app = Flask(__name__)
 # Use environment variable for SECRET_KEY in production, fallback for development
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
@@ -83,6 +87,7 @@ class WebMessageBuffer:
             "investment_plan": None,
             "trader_investment_plan": None,
             "final_trade_decision": None,
+            "trade_execution": None,
         }
         self.current_step = "waiting"
         self.progress = 0
@@ -192,8 +197,9 @@ def run_analysis_background(session_id: str, config: Dict):
             'llm_provider': config['llm_provider'],
             'backend_url': config['backend_url'],
             'api_key': config.get('api_key', ''),
-            'shallow_thinker': config['shallow_thinker'],
-            'deep_thinker': config['deep_thinker'],
+            # Map UI selections to model keys actually used
+            'quick_think_llm': config['shallow_thinker'],
+            'deep_think_llm': config['deep_thinker'],
             'research_depth': config['research_depth'],
             'session_id': session_id  # Add session ID for unique memory collections
         })
@@ -311,6 +317,51 @@ def run_analysis_background(session_id: str, config: Dict):
                     buffer.update_report_section("final_trade_decision", chunk["final_trade_decision"])
                     buffer.update_agent_status("Portfolio Manager", "completed")
                     buffer.update_progress(100, "Analysis completed!")
+
+                # Handle trade execution result (from Trade Executor node)
+                if "trade_execution_result" in chunk and chunk["trade_execution_result"]:
+                    ter = chunk["trade_execution_result"]
+                    attempted = ter.get("attempted", False)
+                    executed = ter.get("executed", False)
+                    side = ter.get("side")
+                    symbol = ter.get("symbol")
+                    qty = ter.get("quantity")
+                    mode = ter.get("mode")
+                    err = ter.get("error")
+
+                    if attempted:
+                        if executed and not err:
+                            msg = f"Trade placed: {side} {qty} {symbol} on {mode.upper()}"
+                            buffer.add_message("Trade", msg)
+                        elif executed and err:
+                            msg = f"Trade placed (with warning): {side} {qty} {symbol} on {mode.upper()} — {err}"
+                            buffer.add_message("Trade", msg)
+                        else:
+                            # attempted but not executed (e.g., no keys, skipped duplicate BUY, etc.)
+                            reason = err or "not executed"
+                            msg = f"Trade not executed: {side} {qty} {symbol} — {reason}"
+                            buffer.add_message("Trade", msg)
+
+                        # Also add a compact report section for trade execution details
+                        report = [
+                            f"### Trade Execution\n",
+                            f"- Symbol: {symbol}",
+                            f"- Side: {side}",
+                            f"- Quantity: {qty}",
+                            f"- Mode: {mode}",
+                            f"- Executed: {'Yes' if executed else 'No'}",
+                        ]
+                        # Include parsed TP/SL when available
+                        tp = ter.get('tp')
+                        sl = ter.get('sl')
+                        is_pct = ter.get('tp_sl_percent')
+                        if tp is not None:
+                            report.append(f"- Take Profit: {tp}{'%' if is_pct else ''}")
+                        if sl is not None:
+                            report.append(f"- Stop Loss: {sl}{'%' if is_pct else ''}")
+                        if err:
+                            report.append(f"- Error: {err}")
+                        buffer.update_report_section("trade_execution", "\n".join(report))
         
         buffer.update_progress(100, "Analysis completed successfully!")
         analysis_sessions[session_id]['status'] = 'completed'

@@ -353,6 +353,22 @@
             word-wrap: break-word;
             white-space: pre-wrap;
         }
+
+        /* Emphasize final decision card for readability */
+        .decision-card {
+            border: 2px solid var(--border-hover);
+            box-shadow: 0 8px 24px var(--shadow-light);
+            padding: 18px;
+            border-radius: 14px;
+            background: var(--bg-panel);
+        }
+        .decision-card h6 {
+            font-size: 1.1rem;
+        }
+        .decision-card .report-content {
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
         
         .report-content {
             line-height: 1.6;
@@ -774,6 +790,7 @@
             if (message.type.includes('Bull')) messageClass += ' message-bull';
             if (message.type.includes('Bear')) messageClass += ' message-bear';
             if (message.type.includes('Research')) messageClass += ' message-research';
+            if (message.type.toLowerCase().includes('trade')) messageClass += ' message-system';
             
             messageElement.className = messageClass;
             
@@ -836,12 +853,16 @@
                 'fundamentals_report': 'Fundamentals Analysis',
                 'investment_plan': 'Research Team Decision',
                 'trader_investment_plan': 'Trading Plan',
-                'final_trade_decision': 'Portfolio Management Decision'
+                'final_trade_decision': 'Portfolio Management Decision',
+                'trade_execution': 'Trade Execution'
             };
             
+            const isDecision = section === 'final_trade_decision';
             sectionElement.innerHTML = `
-                <h6 class="text-primary">${sectionTitles[section] || section}</h6>
-                <div class="report-content">${marked.parse(content)}</div>
+                <div class="${isDecision ? 'decision-card' : ''}">
+                    <h6 class="text-primary">${sectionTitles[section] || section}</h6>
+                    <div class="report-content">${marked.parse(content)}</div>
+                </div>
                 <hr>
             `;
             

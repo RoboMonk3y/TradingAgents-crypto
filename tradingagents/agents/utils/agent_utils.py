@@ -104,7 +104,8 @@ class Toolkit:
             str,
             "Ticker of a company. e.g. AAPL, TSM",
         ],
-        curr_date: Annotated[str, "Current date you want to get news for"],
+        curr_date: Annotated[str, "Current date you want to get news for"] = "",
+        date: Annotated[str, "Alias for current date (YYYY-MM-DD)"] = "",
     ) -> str:
         """
         Retrieve the latest news about a given stock from Reddit, given the current date.
@@ -115,7 +116,9 @@ class Toolkit:
             str: A formatted dataframe containing the latest news about the company on the given date
         """
 
-        stock_news_results = interface.get_reddit_company_news(ticker, curr_date, 7, 5)
+        # Accept alias 'date' for 'curr_date'
+        current = curr_date or date
+        stock_news_results = interface.get_reddit_company_news(ticker, current, 7, 5)
 
         return stock_news_results
 
@@ -423,8 +426,10 @@ class Toolkit:
     @staticmethod
     @tool
     def get_crypto_market_analysis(
-        symbol: Annotated[str, "Cryptocurrency symbol like BTC, ETH, ADA"],
-        curr_date: Annotated[str, "Current date in yyyy-mm-dd format"],
+        symbol: Annotated[str, "Cryptocurrency symbol like BTC, ETH, ADA"] = "",
+        curr_date: Annotated[str, "Current date in yyyy-mm-dd format"] = "",
+        ticker: Annotated[str, "Alias for symbol"] = "",
+        date: Annotated[str, "Alias for curr_date (YYYY-MM-DD)"] = "",
     ) -> str:
         """
         Get comprehensive market analysis for a cryptocurrency including current price, market cap, volume, and key metrics.
@@ -434,14 +439,18 @@ class Toolkit:
         Returns:
             str: Comprehensive market data and analysis for the cryptocurrency
         """
-        return interface.get_crypto_market_analysis(symbol, curr_date)
+        sym = symbol or ticker
+        cd = curr_date or date
+        return interface.get_crypto_market_analysis(sym, cd)
 
     @staticmethod
     @tool
     def get_crypto_price_history(
-        symbol: Annotated[str, "Cryptocurrency symbol like BTC, ETH, ADA"],
-        curr_date: Annotated[str, "Current date in yyyy-mm-dd format"],
+        symbol: Annotated[str, "Cryptocurrency symbol like BTC, ETH, ADA"] = "",
+        curr_date: Annotated[str, "Current date in yyyy-mm-dd format"] = "",
         look_back_days: Annotated[int, "How many days to look back"] = 30,
+        ticker: Annotated[str, "Alias for symbol"] = "",
+        date: Annotated[str, "Alias for curr_date (YYYY-MM-DD)"] = "",
     ) -> str:
         """
         Get historical price data for a cryptocurrency over a specified time period.
@@ -452,14 +461,18 @@ class Toolkit:
         Returns:
             str: Historical price, volume, and market cap data
         """
-        return interface.get_crypto_price_history(symbol, curr_date, look_back_days)
+        sym = symbol or ticker
+        cd = curr_date or date
+        return interface.get_crypto_price_history(sym, cd, look_back_days)
 
     @staticmethod
     @tool
     def get_crypto_technical_analysis(
-        symbol: Annotated[str, "Cryptocurrency symbol like BTC, ETH, ADA"],
-        curr_date: Annotated[str, "Current date in yyyy-mm-dd format"],
+        symbol: Annotated[str, "Cryptocurrency symbol like BTC, ETH, ADA"] = "",
+        curr_date: Annotated[str, "Current date in yyyy-mm-dd format"] = "",
         look_back_days: Annotated[int, "How many days to look back"] = 30,
+        ticker: Annotated[str, "Alias for symbol"] = "",
+        date: Annotated[str, "Alias for curr_date (YYYY-MM-DD)"] = "",
     ) -> str:
         """
         Get technical analysis for a cryptocurrency including trends, support/resistance levels, and momentum indicators.
@@ -470,14 +483,18 @@ class Toolkit:
         Returns:
             str: Technical analysis including price trends, volume analysis, and key levels
         """
-        return interface.get_crypto_technical_analysis(symbol, curr_date, look_back_days)
+        sym = symbol or ticker
+        cd = curr_date or date
+        return interface.get_crypto_technical_analysis(sym, cd, look_back_days)
 
     @staticmethod
     @tool
     def get_crypto_news_analysis(
-        symbol: Annotated[str, "Cryptocurrency symbol like BTC, ETH, ADA"],
-        curr_date: Annotated[str, "Current date in yyyy-mm-dd format"],
+        symbol: Annotated[str, "Cryptocurrency symbol like BTC, ETH, ADA"] = "",
+        curr_date: Annotated[str, "Current date in yyyy-mm-dd format"] = "",
         look_back_days: Annotated[int, "How many days to look back"] = 7,
+        ticker: Annotated[str, "Alias for symbol"] = "",
+        date: Annotated[str, "Alias for curr_date (YYYY-MM-DD)"] = "",
     ) -> str:
         """
         Get recent news and market trends affecting cryptocurrency markets.
@@ -488,7 +505,9 @@ class Toolkit:
         Returns:
             str: News analysis and market trends for cryptocurrency
         """
-        return interface.get_crypto_news_analysis(symbol, curr_date, look_back_days)
+        sym = symbol or ticker
+        cd = curr_date or date
+        return interface.get_crypto_news_analysis(sym, cd, look_back_days)
 
     @staticmethod
     @tool

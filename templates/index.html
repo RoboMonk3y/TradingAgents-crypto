@@ -544,6 +544,7 @@
                                 <option value="anthropic">Anthropic</option>
                                 <option value="google">Google</option>
                                 <option value="groq">Groq</option>
+                                <option value="openrouter">OpenRouter</option>
                             </select>
                             <input type="text" class="form-control" id="backend_url" name="backend_url" 
                                    placeholder="Backend URL" value="https://api.openai.com/v1" style="margin-top: 12px;">
@@ -643,6 +644,7 @@
                 /^sk-[a-zA-Z0-9_-]{20,}$/,   // OpenAI keys
                 /^AIza[a-zA-Z0-9_-]{35}$/,   // Google API keys
                 /^ya29\.[a-zA-Z0-9_-]+$/,    // Google OAuth tokens
+                /^sk-or-v1-[a-zA-Z0-9_-]{20,}$/, // OpenRouter keys
             ];
             
             return patterns.some(pattern => pattern.test(apiKey));
@@ -754,7 +756,8 @@
                 'openai': 'https://api.openai.com/v1',
                 'anthropic': 'https://api.anthropic.com/',
                 'google': 'https://generativelanguage.googleapis.com/v1',
-                'groq': 'https://api.groq.com/openai/v1'
+                'groq': 'https://api.groq.com/openai/v1',
+                'openrouter': 'https://openrouter.ai/api/v1'
             };
             urlInput.value = urls[provider] || '';
             
@@ -811,6 +814,18 @@
                     ],
                     deep: [
                         {value: 'qwen/qwen3-32b', text: 'Qwen3 32B'}
+                    ]
+                },
+                'openrouter': {
+                    shallow: [
+                        {value: 'openai/gpt-4o-mini', text: 'OpenAI GPT-4o-mini via OpenRouter'},
+                        {value: 'meta-llama/llama-3.1-8b-instruct', text: 'Llama 3.1 8B Instruct'},
+                        {value: 'qwen/qwen-2.5-7b-instruct', text: 'Qwen2.5 7B Instruct'}
+                    ],
+                    deep: [
+                        {value: 'openai/gpt-4o', text: 'OpenAI GPT-4o via OpenRouter'},
+                        {value: 'anthropic/claude-3.7-sonnet', text: 'Claude 3.7 Sonnet'},
+                        {value: 'mistralai/mixtral-8x7b-instruct', text: 'Mixtral 8x7B Instruct'}
                     ]
                 }
             };

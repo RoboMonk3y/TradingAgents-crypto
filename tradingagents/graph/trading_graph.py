@@ -91,15 +91,14 @@ class TradingAgentsGraph:
                 google_api_key=self.config["api_key"]
             )
         elif self.config["llm_provider"].lower() == "groq":
+            # Groq client manages its own base URL; do not pass OpenAI-compatible base_url to avoid path duplication
             self.deep_thinking_llm = ChatGroq(
                 model=self.config["deep_think_llm"],
                 api_key=self.config["api_key"],
-                base_url=self.config["backend_url"],
             )
             self.quick_thinking_llm = ChatGroq(
                 model=self.config["quick_think_llm"],
                 api_key=self.config["api_key"],
-                base_url=self.config["backend_url"],
             )
         else:
             raise ValueError(f"Unsupported LLM provider: {self.config['llm_provider']}")
@@ -129,6 +128,7 @@ class TradingAgentsGraph:
             self.invest_judge_memory,
             self.risk_manager_memory,
             self.conditional_logic,
+            self.config,
         )
 
         self.propagator = Propagator()
@@ -144,59 +144,66 @@ class TradingAgentsGraph:
         self.graph = self.graph_setup.setup_graph(selected_analysts)
 
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
-        """Create tool nodes for different data sources."""
+        """Create tool nodes for different data sources, filtering provider-specific tools."""
+        provider = str(self.config.get("llm_provider", "")).lower()
+
+        # Market tools (no OpenAI Responses dependency)
+        market_tools = [
+            # Stock tools (online)
+            self.toolkit.get_YFin_data_online,
+            self.toolkit.get_stockstats_indicators_report_online,
+            # Stock tools (offline)
+            self.toolkit.get_YFin_data,
+            self.toolkit.get_stockstats_indicators_report,
+            # Crypto tools
+            self.toolkit.get_crypto_price_history,
+            self.toolkit.get_crypto_technical_analysis,
+            self.toolkit.get_crypto_market_analysis,
+            self.toolkit.get_crypto_news_analysis,
+            self.toolkit.get_reddit_stock_info,
+        ]
+
+        # Social tools
+        social_tools = []
+        if provider == "openai":
+            social_tools.append(self.toolkit.get_stock_news_openai)
+        # Always-available tools
+        social_tools += [
+            self.toolkit.get_reddit_stock_info,
+            self.toolkit.get_crypto_news_analysis,
+        ]
+
+        # News tools
+        news_tools = []
+        if provider == "openai":
+            news_tools.append(self.toolkit.get_global_news_openai)
+        news_tools += [
+            self.toolkit.get_google_news,
+            self.toolkit.get_finnhub_news,
+            self.toolkit.get_reddit_news,
+            self.toolkit.get_crypto_news_analysis,
+        ]
+
+        # Fundamentals tools
+        fundamentals_tools = []
+        if provider == "openai":
+            fundamentals_tools.append(self.toolkit.get_fundamentals_openai)
+        fundamentals_tools += [
+            self.toolkit.get_finnhub_company_insider_sentiment,
+            self.toolkit.get_finnhub_company_insider_transactions,
+            self.toolkit.get_simfin_balance_sheet,
+            self.toolkit.get_simfin_cashflow,
+            self.toolkit.get_simfin_income_stmt,
+            # Crypto tools
+            self.toolkit.get_crypto_fundamentals_analysis,
+            self.toolkit.get_crypto_market_analysis,
+        ]
+
         return {
-            "market": ToolNode(
-                [
-                    # Stock tools (online)
-                    self.toolkit.get_YFin_data_online,
-                    self.toolkit.get_stockstats_indicators_report_online,
-                    # Stock tools (offline)
-                    self.toolkit.get_YFin_data,
-                    self.toolkit.get_stockstats_indicators_report,
-                    # Crypto tools
-                    self.toolkit.get_crypto_price_history,
-                    self.toolkit.get_crypto_technical_analysis,
-                    self.toolkit.get_crypto_market_analysis,
-                ]
-            ),
-            "social": ToolNode(
-                [
-                    # Stock tools (online)
-                    self.toolkit.get_stock_news_openai,
-                    # Stock tools (offline)
-                    self.toolkit.get_reddit_stock_info,
-                    # Crypto tools
-                    self.toolkit.get_crypto_news_analysis,
-                ]
-            ),
-            "news": ToolNode(
-                [
-                    # Stock tools (online)
-                    self.toolkit.get_global_news_openai,
-                    self.toolkit.get_google_news,
-                    # Stock tools (offline)
-                    self.toolkit.get_finnhub_news,
-                    self.toolkit.get_reddit_news,
-                    # Crypto tools
-                    self.toolkit.get_crypto_news_analysis,
-                ]
-            ),
-            "fundamentals": ToolNode(
-                [
-                    # Stock tools (online)
-                    self.toolkit.get_fundamentals_openai,
-                    # Stock tools (offline)
-                    self.toolkit.get_finnhub_company_insider_sentiment,
-                    self.toolkit.get_finnhub_company_insider_transactions,
-                    self.toolkit.get_simfin_balance_sheet,
-                    self.toolkit.get_simfin_cashflow,
-                    self.toolkit.get_simfin_income_stmt,
-                    # Crypto tools
-                    self.toolkit.get_crypto_fundamentals_analysis,
-                    self.toolkit.get_crypto_market_analysis,
-                ]
-            ),
+            "market": ToolNode(market_tools),
+            "social": ToolNode(social_tools),
+            "news": ToolNode(news_tools),
+            "fundamentals": ToolNode(fundamentals_tools),
         }
 
     def propagate(self, company_name, trade_date):

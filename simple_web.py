@@ -6,13 +6,19 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional
 import uuid
+import os
+from dotenv import load_dotenv
 
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
 from cli.models import AnalystType
 
+# Load .env for local/dev runs (no-op if absent)
+load_dotenv()
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'tradingagents_secret_key'
+# Use environment variable for SECRET_KEY with a sensible default
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'tradingagents_secret_key')
 
 # Global storage for analysis sessions
 analysis_sessions = {}
@@ -116,18 +122,24 @@ def run_analysis_background(session_id: str, config: Dict):
     try:
         buffer = analysis_sessions[session_id]['buffer']
         
-        # Initialize the graph
-        graph = TradingAgentsGraph(DEFAULT_CONFIG)
-        
         # Update configuration based on user selections
         updated_config = DEFAULT_CONFIG.copy()
         updated_config.update({
             'llm_provider': config['llm_provider'],
             'backend_url': config['backend_url'],
-            'shallow_thinker': config['shallow_thinker'],
-            'deep_thinker': config['deep_thinker'],
-            'research_depth': config['research_depth']
+            'api_key': config.get('api_key', ''),
+            'quick_think_llm': config['shallow_thinker'],
+            'deep_think_llm': config['deep_thinker'],
+            'research_depth': config['research_depth'],
+            'session_id': session_id,
         })
+
+        # Initialize the graph with correct parameters
+        graph = TradingAgentsGraph(
+            selected_analysts=config['analysts'],
+            debug=False,
+            config=updated_config
+        )
         
         # Create initial state
         init_state = graph.propagator.create_initial_state(
